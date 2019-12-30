@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const expressListRoutes = require('express-list-routes');
 const router = require('../router');
 const Logger = require('../../logger');
-const basicAuth = require('../middleware/authentication');
 const TvControllerInterface = require('./TvControllerInterface');
 
 module.exports = class TvControllerApp {
@@ -23,8 +22,6 @@ module.exports = class TvControllerApp {
         this.app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, './view/index.html'));
         });
-
-        this.app.use(basicAuth);
 
         const routes = router.getRoutes();
         this.app.use('/', routes);

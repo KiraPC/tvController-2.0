@@ -5,7 +5,7 @@ module.exports = (req, res, next) => {
         return next();
     }
 
-    const { deviceId } = req.params;
+    const deviceId = req.path.split('/')[1];
 
     const user = userConfig.userInfo[deviceId];
 

@@ -1,4 +1,5 @@
 const express = require('express');
+const basicAuth = require('../middleware/authentication');
 const appManager = require('../middleware/appManager');
 const mediaControl = require('../middleware/mediaControl');
 const systemManager = require('../middleware/systemManager');
@@ -9,6 +10,8 @@ const router = express.Router();
 
 function getRoutes() {
     // channel list control
+    router.use(basicAuth);
+
     router.put('/:deviceId/channel/:channelId', channelManager.openChannelByNumber);
     router.put('/:deviceId/channelList', channelManager.openChannelList);
 

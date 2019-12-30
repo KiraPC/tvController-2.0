@@ -16,6 +16,8 @@ function getUserInfo() {
 
         userInfo[device] = { username, password };
     }
+
+    return userInfo;
 }
 
 module.exports = {

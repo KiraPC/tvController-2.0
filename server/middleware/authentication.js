@@ -1,5 +1,4 @@
-// @ts-ignore
-const userConfig = require('../../config/user.json');
+const userConfig = require('../../config').users;
 
 module.exports = (req, res, next) => {
     if (!userConfig.isBasicAuthEnabled) {

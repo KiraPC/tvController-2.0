@@ -1,9 +1,0 @@
-{
-    "isBasicAuthEnabled": true,
-    "userInfo": {
-        "[deviceId]": {
-            "username": "",
-            "password": ""
-        }
-    }
-}

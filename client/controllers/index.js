@@ -1,5 +1,5 @@
 const WebOSController = require('./webOS');
-const tvConfig = require('../../config/tv.json');
+const tvConfig = require('../../config').tv;
 
 const controllers = {
     webos: WebOSController

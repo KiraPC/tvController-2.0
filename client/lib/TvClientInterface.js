@@ -11,6 +11,7 @@ module.exports = class TvClientInterface {
 
         this.client = io(endpoint, this.options);
         this.client.on('connect', this.onConnect.bind(this));
+        this.client.on('disconnect', this.onDisconnect.bind(this));
         this.client.on('cmd', this.onCmd.bind(this));
     }
 
@@ -22,6 +23,10 @@ module.exports = class TvClientInterface {
         } catch (error) {
             this.logger.error('Unable to connected to TV.', error);
         }
+    }
+
+    onDisconnect() {
+        this.logger.info('Disconnected from TvControllerServer!');
     }
 
     onCmd(command) {

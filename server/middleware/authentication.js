@@ -6,9 +6,17 @@ module.exports = (req, res, next) => {
         return next();
     }
 
+    const { deviceId } = req.params;
+
+    const user = userConfig.userInfo[deviceId];
+
+    if (!user) {
+        return res.status(500).send('No user for given device configured!');
+    }
+
     const { username, password } = req.body;
 
-    if (userConfig.userInfo.username === username && userConfig.userInfo.password === password) {
+    if (user.username === username && user.password === password) {
         return next();
     }
 

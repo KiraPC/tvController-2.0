@@ -110,4 +110,22 @@ module.exports = class TvClientInterface {
             this.logger.error('Unable to change Volume ...', error);
         }
     }
+
+    async turnOn() {
+        try {
+            await this.tvController.turnOn();
+            this.logger.info('TV on!');
+        } catch (error) {
+            this.logger.error('Unable to turn on the TV ...', error);
+        }
+    }
+
+    async turnOff() {
+        try {
+            await this.tvController.turnOff();
+            this.logger.info('TV off!');
+        } catch (error) {
+            this.logger.error('Unable to turn off the TV ...', error);
+        }
+    }
 };

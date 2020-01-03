@@ -48,7 +48,7 @@ function handlePrompt() {
 }
 
 module.exports = class WebOsTv {
-    constructor(logger, macAddress, ip = null) {
+    constructor(logger, macAddress = null, ip = null) {
         this.started = false;
 
         this.macAddress = macAddress;
@@ -105,6 +105,10 @@ module.exports = class WebOsTv {
             if (!this.ip) {
                 this.logger.info('Ip not provided, search ip in the network!');
                 await this.setIP();
+            }
+
+            if (!this.macAddress) {
+                this.macAddress = await scanner.getMac(this.ip);
             }
 
             this.host = `ws://${this.ip}:3000`;

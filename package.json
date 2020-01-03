@@ -23,6 +23,7 @@
     "lodash": "^4.17.11",
     "network-list": "^1.1.5",
     "node-arp": "^1.0.6",
+    "node-wol": "^0.1.1",
     "ping": "^0.2.2",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",

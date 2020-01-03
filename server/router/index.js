@@ -29,6 +29,7 @@ function getRoutes() {
     router.put('/:deviceId/app/:appName', appManager.openAppByName);
 
     router.put('/:deviceId/tv/off', systemManager.turnOff);
+    router.put('/:deviceId/tv/on', systemManager.turnOn);
     router.put('/:deviceId/tv/off/:timeout', systemManager.turnOffWithTimeout);
     router.delete('/:deviceId/tv/off/timeout', systemManager.clearTimeout);
 

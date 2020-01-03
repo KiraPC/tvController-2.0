@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const wol = require('node-wol');
 const WebOSTv = require('./core/webOS');
 
 const actionMap = {
@@ -11,6 +12,23 @@ module.exports = class WebOSController extends WebOSTv {
     constructor(logger, macAddress, ip) {
         super(logger, macAddress, ip);
         logger.debug('Initializing WebOS controller');
+    }
+
+    turnOn() {
+        return new Promise((resolve, reject) => {
+            wol.wake(this.macAddress, {
+                address: this.ip,
+                port: 3000
+            }, (error) => {
+                if (error) {
+                    return reject(error);
+                }
+
+                return resolve();
+            });
+
+            wol.createMagicPacket(this.macAddress);
+        });
     }
 
     async turnOff() {

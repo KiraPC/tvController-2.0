@@ -146,3 +146,4 @@ async function scan(opts) {
 }
 
 module.exports = scan;
+module.exports.getMac = getMac;

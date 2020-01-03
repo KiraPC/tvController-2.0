@@ -108,7 +108,9 @@ module.exports = class WebOsTv {
             }
 
             if (!this.macAddress) {
+                this.logger.info('MacAddress not provided, getting info from ip');
                 this.macAddress = await scanner.getMac(this.ip);
+                this.logger.debug('MacAddress found:', this.macAddress);
             }
 
             this.host = `ws://${this.ip}:3000`;

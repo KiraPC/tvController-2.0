@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const wol = require('node-wol');
+const wol = require('wake_on_lan');
 const WebOSTv = require('./core/webOS');
 
 const actionMap = {
@@ -27,7 +27,8 @@ module.exports = class WebOSController extends WebOSTv {
                 return resolve();
             });
 
-            wol.createMagicPacket(this.macAddress);
+            // eslint-disable-next-line no-unused-vars, camelcase
+            const magic_packet = wol.createMagicPacket(this.macAddress);
         });
     }
 

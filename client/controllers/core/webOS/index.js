@@ -1,61 +1,86 @@
 const _ = require('lodash');
 const util = require('util');
+const ping = require('ping');
 const LGTV = require('lgtv2');
 const guid = require('uuid/v1');
 const scanner = require('../netScanner');
 
-function isWrongKeyError(error) {
-    try {
-        return error.message.indexOf('Sec-WebSocket-Accept') > -1;
-    } catch (err) {
-        this.logger.debug(`isWrongKeyError got error: ${err}`);
-        return false;
-    }
-}
-
-function handleError(err) {
-    // skip always Sec-WebSocket-Accept errors
-    if (isWrongKeyError(err)) return;
-
-    if (this.started) {
-        this.logger.debug(`TV disconnected for error: ${err}, Try to reconnect!`);
-        this.lgtv.connect(this.host);
-    } else {
-        this.logger.debug(`Starting error: ${err}`);
-        this.reject();
-    }
-}
-
-function handleConnect() {
-    if (!this.started) {
-        this.started = true;
-        this.logger.info(`Connected to webOS TV and IP is ${this.ip}`);
-
-        this.resolve();
-    } else {
-        this.logger.info('Re-Connected!');
-        this.logger.debug('Send pending requests ...');
-        this.flushRequests();
-    }
-}
-
-function handleConnecting() {
-    this.logger.info('Connecting to TV ...');
-}
-
-function handlePrompt() {
-    this.logger.warn('Check TV and accept the connection!');
-}
-
 module.exports = class WebOsTv {
     constructor(logger, macAddress = null, ip = null) {
         this.started = false;
+        this.connected = false;
 
         this.macAddress = macAddress;
         this.ip = ip;
         this.logger = logger;
 
         this.pendingRequests = {};
+    }
+
+    isWrongKeyError(error) {
+        try {
+            return error.message.indexOf('Sec-WebSocket-Accept') > -1;
+        } catch (err) {
+            this.logger.debug(`isWrongKeyError got error: ${err}`);
+            return false;
+        }
+    }
+
+    async onError(err) {
+        // skip always Sec-WebSocket-Accept errors
+        if (this.isWrongKeyError(err)) return;
+
+        if (!this.started) {
+            this.logger.debug(`Starting error: ${err}`);
+            this.reject();
+            return;
+        }
+
+        this.logger.warn(`TV disconnected for error: ${err}`);
+
+        const response = await ping.promise.probe(this.ip, { timeout: 100 });
+
+        if (!response.alive) {
+            this.logger.warn(`TV not in network.`);
+            this.connected = false;
+            return;
+        }
+
+        this.logger.debug(`TV disconnected for error: ${err}, Try to reconnect!`);
+        this.lgtv.connect(this.host);
+    }
+
+    onConnect() {
+        this.connected = true;
+
+        if (!this.started) {
+            this.started = true;
+            this.logger.info(`Connected to webOS TV and IP is ${this.ip}`);
+
+            this.resolve();
+        } else {
+            this.logger.info('Re-Connected!');
+        }
+    }
+
+    async onConnecting() {
+        this.logger.info('Connecting to TV ...');
+
+        const response = await ping.promise.probe(this.ip, { timeout: 100 });
+
+        if (!response.alive) {
+            this.logger.warn('TV not in the network. Closing connections.');
+            this.lgtv.disconnect();
+            this.connected = false;
+        }
+    }
+
+    onClose() {
+        this.logger.warn('Connection closed!');
+    }
+
+    onPrompt() {
+        this.logger.warn('Check TV and accept the connection!');
     }
 
     /**
@@ -123,13 +148,15 @@ module.exports = class WebOsTv {
             this.lgtv.connect(this.host);
 
             // @ts-ignore
-            this.lgtv.on('connect', handleConnect.bind(this));
+            this.lgtv.on('connect', this.onConnect.bind(this));
             // @ts-ignore
-            this.lgtv.on('connecting', handleConnecting.bind(this));
+            this.lgtv.on('connecting', this.onConnecting.bind(this));
             // @ts-ignore
-            this.lgtv.on('error', handleError.bind(this));
+            this.lgtv.on('error', this.onError.bind(this));
             // @ts-ignore
-            this.lgtv.on('prompt', handlePrompt.bind(this));
+            this.lgtv.on('prompt', this.onPrompt.bind(this));
+            // @ts-ignore
+            this.lgtv.on('close', this.onClose.bind(this));
 
             this.sendRequest = util.promisify(this.lgtv.request.bind(this.lgtv));
         });
@@ -144,6 +171,10 @@ module.exports = class WebOsTv {
         }
 
         try {
+            if (!this.connected) {
+                await this.connect();
+            }
+
             this.logger.debug(`sending request: ${uri} | ${JSON.stringify(payload)}`);
             const response = await this.sendRequest(uri, payload);
             this.logger.debug(`request response: ${JSON.stringify(response)}`);

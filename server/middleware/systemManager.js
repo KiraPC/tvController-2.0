@@ -1,24 +1,3 @@
-const _ = require('lodash');
-
-let timeoutContainer = null;
-let count = null;
-
-function reversCout(timeout) {
-    count = timeout / 1000;
-
-    const interval = setInterval(() => {
-        if (timeoutContainer === null) { clearInterval(interval); return; }
-
-        this.logger.warn(`================ The TV will turn off in ${count} seconds ================`);
-        count--;
-    }, 1000);
-
-    setTimeout(() => {
-        clearInterval(interval);
-        count = null;
-    }, timeout);
-}
-
 module.exports.turnOff = async (req, res) => {
     const tvControllerInterface = req.app.get('tvControllerInterface');
 
@@ -53,28 +32,27 @@ module.exports.turnOn = async (req, res) => {
     }
 };
 
-// not implemented yet
 module.exports.turnOffWithTimeout = async (req, res) => {
-    const { tvController } = res.locals;
-    const timeout = _.toInteger(req.params.timeout);
+    const tvControllerInterface = req.app.get('tvControllerInterface');
 
-    if (!timeout) {
-        return res.send(400).send('Timeout not valid');
+    const { deviceId } = req.params;
+
+    const command = JSON.stringify({
+        type: 'turnOffwithTimeout'
+    });
+
+    try {
+        await tvControllerInterface.sendCmd(deviceId, command);
+        res.send('Success');
+    } catch (error) {
+        res.status(500).send('Error');
     }
-
-    const msTimeout = timeout * (1000 * 60);
-
-    timeoutContainer = setTimeout(tvController.turnOff.bind(tvController), msTimeout);
-    tvController.logger.info(`Timeout setted to ${msTimeout} ms`);
-    reversCout.bind(tvController)(msTimeout);
-
-    return res.send('Success');
 };
 
+// not implemented yet
 module.exports.clearTimeout = async (req, res) => {
-    clearTimeout(timeoutContainer);
-    timeoutContainer = null;
-    res.locals.tvController.logger.info('Timeout cleared');
+    const tvControllerInterface = req.app.get('tvControllerInterface');
+    tvControllerInterface.logger.info('Timeout cleared');
 
     res.send('Success');
 };

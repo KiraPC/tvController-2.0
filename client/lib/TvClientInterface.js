@@ -15,14 +15,19 @@ module.exports = class TvClientInterface {
         this.client.on('cmd', this.onCmd.bind(this));
     }
 
-    async onConnect() {
-        this.logger.info('Connected to TvControllerServer!');
-
+    /**
+     * call this function to connect to the TV
+     */
+    async connect() {
         try {
             await this.tvController.connect();
         } catch (error) {
             this.logger.error('Unable to connected to TV.', error);
         }
+    }
+
+    onConnect() {
+        this.logger.info('Connected to TvControllerServer!');
     }
 
     onDisconnect() {
@@ -124,6 +129,15 @@ module.exports = class TvClientInterface {
         try {
             await this.tvController.turnOff();
             this.logger.info('TV off!');
+        } catch (error) {
+            this.logger.error('Unable to turn off the TV ...', error);
+        }
+    }
+
+    async turnOffwithTimeout() {
+        try {
+            await this.tvController.timeoutOff();
+            this.logger.info('TV off timout setted!');
         } catch (error) {
             this.logger.error('Unable to turn off the TV ...', error);
         }

@@ -8,6 +8,15 @@ const actionMap = {
     STOP: 'stop'
 };
 
+const BUTTON = {
+    EXIT: 'EXIT',
+    MENU: 'MENU',
+    UP: 'UP',
+    ENTER: 'ENTER',
+    RIGHT: 'RIGHT',
+    DOWN: 'DOWN'
+};
+
 module.exports = class WebOSController extends WebOSTv {
     constructor(logger, macAddress, ip) {
         super(logger, macAddress, ip);
@@ -119,5 +128,39 @@ module.exports = class WebOSController extends WebOSTv {
         } catch (err) {
             return this.logger.error('Unable to control media:', err);
         }
+    }
+
+    timeoutOff() {
+        this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', this._sendTimeoutOffSequence.bind(this));
+    }
+
+    async sendButton(tv, button, timeout = 1000) {
+        this.logger.debug('Sending button', button);
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                tv.send('button', { name: button.toUpperCase() });
+                resolve();
+            }, timeout);
+        });
+    }
+
+    async _sendTimeoutOffSequence(err, tv) {
+        if (err) {
+            this.logger.error('Unable to send timeout off sequence, error:', err);
+        }
+
+        await this.sendButton(tv, BUTTON.EXIT);
+        await this.sendButton(tv, BUTTON.MENU);
+        await this.sendButton(tv, BUTTON.DOWN);
+        await this.sendButton(tv, BUTTON.DOWN);
+        await this.sendButton(tv, BUTTON.DOWN);
+        await this.sendButton(tv, BUTTON.DOWN);
+        await this.sendButton(tv, BUTTON.DOWN);
+        await this.sendButton(tv, BUTTON.ENTER);
+        await this.sendButton(tv, BUTTON.RIGHT);
+        await this.sendButton(tv, BUTTON.RIGHT);
+        await this.sendButton(tv, BUTTON.ENTER);
+        await this.sendButton(tv, BUTTON.EXIT);
     }
 };

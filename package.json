@@ -23,7 +23,7 @@
     "lodash": "^4.17.11",
     "network-list": "^1.1.5",
     "node-arp": "^1.0.6",
-    "ping": "^0.2.2",
+    "ping": "git+https://github.com/danielzzz/node-ping.git",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
     "socket.io": "2.2.0",

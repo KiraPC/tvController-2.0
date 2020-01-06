@@ -56,11 +56,11 @@ module.exports = class WebOsTv {
         if (!this.started) {
             this.started = true;
             this.logger.info(`Connected to webOS TV and IP is ${this.ip}`);
-
-            this.resolve();
         } else {
             this.logger.info('Re-Connected!');
         }
+
+        this.resolve();
     }
 
     async onConnecting() {
@@ -76,6 +76,7 @@ module.exports = class WebOsTv {
     }
 
     onClose() {
+        this.connected = false;
         this.logger.warn('Connection closed!');
     }
 
@@ -122,7 +123,7 @@ module.exports = class WebOsTv {
         }
     }
 
-    async connect() {
+    connect() {
         return new Promise(async (resolve, reject) => {
             this.resolve = resolve;
             this.reject = reject;

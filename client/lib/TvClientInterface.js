@@ -1,11 +1,12 @@
 const _ = require('lodash');
 const io = require('socket.io-client');
 const Logger = require('../../logger');
+const config = require('../../config');
 const TVController = require('../controllers');
 
 module.exports = class TvClientInterface {
     constructor(endpoint, deviceId) {
-        this.options = { query: { deviceId } };
+        this.options = { query: { deviceId }, transports: config.transports };
         this.logger = new Logger();
         this.tvController = new TVController(this.logger);
 

@@ -23,7 +23,8 @@ function getUserInfo() {
 module.exports = {
     client: {
         endpoint: process.env.ENDPOINT,
-        deviceId: process.env.DEVICEID
+        deviceId: process.env.DEVICEID,
+        transports: process.env.TRANSPORTS ? process.env.TRANSPORTS.split(',') : ['polling']
     },
     tv: {
         macAddress: process.env.MACADDRESS,

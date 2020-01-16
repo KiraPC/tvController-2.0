@@ -17,7 +17,7 @@ const appMap = {
 module.exports.openAppByName = async (req, res) => {
     const tvControllerInterface = req.app.get('tvControllerInterface');
 
-    const deviceId = _.toUpper(req.params.deviceId);
+    const { deviceId } = req.params;
     const appName = _.toUpper(req.params.appName);
 
     const appId = appMap[appName];

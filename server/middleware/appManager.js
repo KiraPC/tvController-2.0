@@ -7,7 +7,8 @@ const appMap = {
     TIMVISION: 'timvision3.0',
     AMAZONVIDEO: 'amazon',
     YOUTUBE: 'youtube.leanback.v4',
-    SPOTIFY: 'spotify-beehive'
+    SPOTIFY: 'spotify-beehive',
+    PS4: 'com.webos.app.hdmi2'
 };
 
 /**

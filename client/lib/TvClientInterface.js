@@ -4,16 +4,27 @@ const Logger = require('../../logger');
 const config = require('../../config');
 const TVController = require('../controllers');
 
+const IO_CLIENT_OPTIONS = {
+    path: '/tv-controller/kira',
+    autoConnect: false,
+    transports: config.transports
+};
+
 module.exports = class TvClientInterface {
     constructor(endpoint, deviceId) {
-        this.options = { query: { deviceId }, transports: config.transports };
+        this.options = Object.assign(IO_CLIENT_OPTIONS, { query: { deviceId } });
         this.logger = new Logger();
         this.tvController = new TVController(this.logger);
 
         this.client = io(endpoint, this.options);
         this.client.on('connect', this.onConnect.bind(this));
         this.client.on('disconnect', this.onDisconnect.bind(this));
+        this.client.on('reconnect', this.onReconnect.bind(this));
+        this.client.on('connect_error', this.onConnectError.bind(this));
+        this.client.on('connect_timeout', this.onConnectTimeout.bind(this));
         this.client.on('cmd', this.onCmd.bind(this));
+
+        this.client.open();
     }
 
     /**
@@ -31,8 +42,27 @@ module.exports = class TvClientInterface {
         this.logger.info('Connected to TvControllerServer!');
     }
 
-    onDisconnect() {
+    onDisconnect(reason) {
         this.logger.info('Disconnected from TvControllerServer!');
+        this.logger.debug('Disconnected reason:', reason);
+
+        this.client.open();
+    }
+
+    onReconnect(attemptNumber) {
+        this.logger.debug('Reconnecting to TvControllerServer, attemptNumber:', attemptNumber);
+    }
+
+    onConnectTimeout() {
+        this.logger.warn('Connection timeout exceeded');
+
+        this.client.open();
+    }
+
+    onConnectError(error) {
+        this.logger.error('Connection error:', error.message);
+
+        this.client.open();
     }
 
     onCmd(command) {

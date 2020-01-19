@@ -3,7 +3,8 @@ const socketIO = require('socket.io');
 const Logger = require('../../logger');
 
 const WSS_OPTIONS = {
-    transports: ['polling', 'websocket']
+    path: '/tv-controller/kira',
+    transports: ['websocket', 'polling']
 };
 
 module.exports = class WSS {
@@ -11,10 +12,6 @@ module.exports = class WSS {
         this.logger = new Logger();
         this.server = server;
         this.port = port;
-
-        // this.port = process.env.WSS_PORT || 3001;
-        // this.app = express();
-        // this.server = http.createServer(this.app);
 
         // Start socket IO server
         this.io = socketIO.listen(this.server, WSS_OPTIONS);
@@ -35,11 +32,10 @@ module.exports = class WSS {
          *
          */
         socket.join(deviceId);
-
-        socket.emit('message', 'You are connected to websocket.');
+        this.logger.info(`Device ${deviceId} connected.`);
 
         socket.on('disconnect', () => {
-            this.logger.info(`Client disconnected.`, socket);
+            this.logger.info(`Device ${deviceId} disconnected.`);
             socket.leave(deviceId);
         });
     }

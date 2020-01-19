@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const io = require('socket.io-client');
 const Logger = require('../../logger');
-const config = require('../../config');
+const config = require('../../config').client;
 const TVController = require('../controllers');
 
 const IO_CLIENT_OPTIONS = {

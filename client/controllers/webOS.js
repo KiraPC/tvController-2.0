@@ -78,7 +78,7 @@ module.exports = class WebOSController extends WebOSTv {
 
         try {
             const extInputList = await this.request('ssap://tv/getExternalInputList');
-            const { devices } = extInputList.payload;
+            const { devices } = extInputList;
 
             for (let i = devices.length - 1; i >= 0; i--) {
                 const device = devices[i];
@@ -96,7 +96,7 @@ module.exports = class WebOSController extends WebOSTv {
         try {
             const response = await this.request('ssap://com.webos.applicationManager/listLaunchPoints');
 
-            const launchpoints = response.payload.launchPoints;
+            const launchpoints = response.launchPoints;
             for (let i = launchpoints.length - 1; i >= 0; i--) {
                 const launchpoint = launchpoints[i];
                 appList[launchpoint.title] = launchpoint.id;

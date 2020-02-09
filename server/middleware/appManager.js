@@ -45,10 +45,18 @@ module.exports.openAppByName = async (req, res) => {
  * Not Supported yet!
  */
 module.exports.getAppList = async (req, res) => {
-    const wss = req.app.get('wss');
+    const tvControllerInterface = req.app.get('tvControllerInterface');
 
-    const deviceId = _.toUpper(req.params.deviceId);
+    const { deviceId } = req.params;
 
-    const list = await wss.sendCmd(deviceId, 'CMD');
-    res.json(list);
+    const command = JSON.stringify({
+        type: 'getAppList'
+    });
+
+    try {
+        const response = await tvControllerInterface.sendCmd(deviceId, command);
+        res.send(response);
+    } catch (error) {
+        res.status(500).send('Error');
+    }
 };

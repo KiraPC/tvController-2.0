@@ -13,15 +13,18 @@ module.exports = class WSS {
         this.server = server;
         this.port = port;
 
+        // store the connected clients
+        this.clients = {};
+
         // Start socket IO server
         this.io = socketIO.listen(this.server, WSS_OPTIONS);
         this.io.on('connection', this._onConnection.bind(this));
     }
 
-    _onConnection(socket) {
+    _onConnection(client) {
         const {
             deviceId
-        } = socket.handshake.query;
+        } = client.handshake.query;
 
         /*
          *
@@ -31,29 +34,35 @@ module.exports = class WSS {
          * notification even if he has multiple tabs or multiple devices connected to the websocket.
          *
          */
-        socket.join(deviceId);
+        this.clients[deviceId] = client;
         this.logger.info(`Device ${deviceId} connected.`);
 
-        socket.on('disconnect', () => {
+        client.on('disconnect', () => {
             this.logger.info(`Device ${deviceId} disconnected.`);
-            socket.leave(deviceId);
+            delete this.clients[deviceId];
         });
     }
 
-    sendCmd(connectionId, command) {
-        if (!this._isClientConnected(connectionId)) {
-            this.logger.info(`${connectionId} not connected`);
+    sendCmd(deviceId, command) {
+        if (!this._isClientConnected(deviceId)) {
+            this.logger.info(`${deviceId} not connected`);
             return this;
         }
 
-        this.logger.info(`Sending command to ${connectionId}`);
+        this.logger.info(`Sending command to ${deviceId}`);
 
-        this.io.to(connectionId).emit('cmd', command);
+        return new Promise((res, rej) => {
+            this.clients[deviceId].emit('cmd', command, (err, response) => {
+                if (err) {
+                    return rej(err);
+                }
 
-        return this;
+                res(response);
+            });
+        });
     }
 
-    _isClientConnected(connectionId) {
-        return _.get(this.io, `sockets.adapter.rooms[${connectionId}]`, false);
+    _isClientConnected(deviceId) {
+        return !_.isNil(this.clients[deviceId]);
     }
 };

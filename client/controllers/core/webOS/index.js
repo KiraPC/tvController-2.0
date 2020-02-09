@@ -163,6 +163,11 @@ module.exports = class WebOsTv {
         });
     }
 
+    disconnect() {
+        this.logger.info('Disconnecting from TV!');
+        this.lgtv.disconnect();
+    }
+
     async request(uri, payload = {}, uuid) {
         if (!uuid) {
             uuid = guid();

@@ -3,6 +3,7 @@ const io = require('socket.io-client');
 const Logger = require('../../logger');
 const config = require('../../config').client;
 const TVController = require('../controllers');
+const ConnectionManager = require('./ConnectionManager');
 
 const IO_CLIENT_OPTIONS = {
     path: '/tv-controller/kira',
@@ -24,7 +25,25 @@ module.exports = class TvClientInterface {
         this.client.on('connect_timeout', this.onConnectTimeout.bind(this));
         this.client.on('cmd', this.onCmd.bind(this));
 
+        this.connectionManager = new ConnectionManager(endpoint, config.connectionTimeout);
+        this.connectionManager.on('internetAvailable', this.onInternetAvailable.bind(this));
+        this.connectionManager.on('internetUnavailable', this.onInternetUnavailable.bind(this));
+
+        this.connectionManager.test();
+    }
+
+    onInternetAvailable() {
+        this.internetAvailable = true;
+
+        // connect when internet is available
         this.client.open();
+    }
+
+    onInternetUnavailable() {
+        this.internetAvailable = false;
+
+        // do not try to connect if internet is not available
+        this.client.close();
     }
 
     /**
@@ -34,6 +53,9 @@ module.exports = class TvClientInterface {
         try {
             await this.tvController.connect();
         } catch (error) {
+            if (!this.internetAvailable) {
+                this.tvController.disconnect();
+            }
             this.logger.error('Unable to connected to TV.', error);
         }
     }
@@ -46,7 +68,11 @@ module.exports = class TvClientInterface {
         this.logger.info('Disconnected from TvControllerServer!');
         this.logger.debug('Disconnected reason:', reason);
 
-        this.client.open();
+        /* 
+         * check if disconnection reasone was because of internet not avaible, 
+         * try to reconnect if not 
+         */
+        this.connectionManager.test();
     }
 
     onReconnect(attemptNumber) {
@@ -56,16 +82,24 @@ module.exports = class TvClientInterface {
     onConnectTimeout() {
         this.logger.warn('Connection timeout exceeded');
 
-        this.client.open();
+        /* 
+         * check if disconnection reasone was because of internet not avaible, 
+         * try to reconnect if not 
+         */
+        this.connectionManager.test();
     }
 
     onConnectError(error) {
         this.logger.error('Connection error:', error.message);
 
-        this.client.open();
+        /* 
+         * check if disconnection reasone was because of internet not avaible, 
+         * try to reconnect if not 
+         */
+        this.connectionManager.test();
     }
 
-    onCmd(command) {
+    async onCmd(command, cb) {
         const cmd = JSON.parse(command);
 
         const { type, query } = cmd;
@@ -73,9 +107,11 @@ module.exports = class TvClientInterface {
 
         try {
             const exec = this.getCmd(type);
-            exec.call(this, query);
+            const response = await exec.call(this, query);
+            cb(null, response);
         } catch (error) {
             this.logger.error('Unable to send command ...', error);
+            cb(error);
         }
     }
 
@@ -171,6 +207,25 @@ module.exports = class TvClientInterface {
             this.logger.info('TV off timout setted!');
         } catch (error) {
             this.logger.error('Unable to turn off the TV ...', error);
+        }
+    }
+
+    async mediaControl(query) {
+        try {
+            await this.tvController.mediaControl(query.action);
+            this.logger.info(`Command ${query.action} sent!`);
+        } catch (error) {
+            this.logger.error(`Unable to send command ${query.action}`, error);
+        }
+    }
+
+    async getAppList() {
+        try {
+            const response = await this.tvController.getApps();
+            this.logger.info(`Sending app list ...`);
+            return response;
+        } catch (error) {
+            this.logger.error(`Unable to retrieve appList`, error);
         }
     }
 };

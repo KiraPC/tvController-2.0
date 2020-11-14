@@ -29,10 +29,10 @@ module.exports = {
     tv: {
         macAddress: process.env.MACADDRESS,
         ip: process.env.TV_IP,
-        tvType: 'webos'
+        tvType: process.env.TV_TYPE
     },
     users: {
-        isBasicAuthEnabled: true,
+        isBasicAuthEnabled: process.env.BASIC_AUTH === 'Y',
         userInfo: getUserInfo()
     }
 };

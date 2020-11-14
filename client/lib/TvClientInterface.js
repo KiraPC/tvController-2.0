@@ -165,8 +165,7 @@ module.exports = class TvClientInterface {
 
     async volumeDown() {
         try {
-            const volumeLevel = await this.tvController.getVolume();
-            await this.tvController.setVolume(volumeLevel - 3);
+            await this.tvController.volumeDown();
             this.logger.info('Volume changed correctly!');
         } catch (error) {
             this.logger.error('Unable to change Volume ...', error);
@@ -175,8 +174,7 @@ module.exports = class TvClientInterface {
 
     async volumeUp() {
         try {
-            const volumeLevel = await this.tvController.getVolume();
-            await this.tvController.setVolume(volumeLevel + 3);
+            await this.tvController.volumeUp();
             this.logger.info('Volume changed correctly!');
         } catch (error) {
             this.logger.error('Unable to change Volume ...', error);
